@@ -75,7 +75,7 @@ public class SystemCache {
 		LazyPropLoader props = new LazyPropLoader(CONFIG_RESOURCE);
 		String size = props.getProperty(CACHE_SIZE, "100");
 		Map<Object, TTLEntry> cache = new LRUCache<Object, TTLEntry>(Integer.parseInt(size));
-		theCache = new ConcurrentHashMap(cache);
+		theCache = new ConcurrentHashMap<Object, TTLEntry>(cache);
 	}
 
 	public Object get(Object key) {

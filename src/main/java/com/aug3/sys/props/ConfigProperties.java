@@ -76,6 +76,10 @@ public class ConfigProperties {
 		String value = getProperty(key);
 		return value == null ? defaultValue : Boolean.valueOf(getProperty(key));
 	}
+	
+	public Properties getProperties() {
+	    return config;
+	}
 
 	public String toString() {
 

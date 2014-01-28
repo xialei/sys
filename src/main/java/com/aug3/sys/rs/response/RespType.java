@@ -91,9 +91,17 @@ public enum RespType {
 	BAD_SIGN_METHOD("10307"),
 	
 	INVALID_SIGNATURE("10308"),
-	
+	// Login
+    LOGIN_SUCCESS("10400"),
+    LOGOUT_SUCCESS("10401"),
+    INVALID_USER("10402"),
+    INVALID_PASSWD("10403"),
+    ENDPOINT_CHANGE("10404"),
+    VERIFY_SUCCESS("10405"),
+    DEACTIVATE_TOKEN_SUCCESS("10406"),
+    DEACTIVATE_FAILED("10407"),
 	;
-	
+
 	private String code;
 	
 	private RespType(String code) {

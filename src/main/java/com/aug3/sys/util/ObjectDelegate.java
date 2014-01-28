@@ -30,8 +30,7 @@ public final class ObjectDelegate {
 		}
 
 		String className = objectToString.getClass().getSimpleName();
-		StringBuffer returnString = new StringBuffer("[").append(className)
-				.append(" Begin]");
+		StringBuffer returnString = new StringBuffer("[").append(className).append(" Begin]");
 
 		Method[] methods = objectToString.getClass().getDeclaredMethods();
 		String methodName = null;
@@ -41,18 +40,13 @@ public final class ObjectDelegate {
 			try {
 				if (methodName.length() > 2) {
 					Object attributeValue = null;
-					if (methodName.startsWith(BeanMethodNameType.GET
-							.getMethodNameType())
+					if (methodName.startsWith(BeanMethodNameType.GET.getMethodNameType())
 							&& method.getParameterTypes().length == 0) {
-						attributeValue = method.invoke(objectToString,
-								(Object[]) null);
+						attributeValue = method.invoke(objectToString, (Object[]) null);
 						if (!objectToString.equals(attributeValue)) {
 							returnString
-									.append(methodName
-											.substring(BeanMethodNameType.GET
-													.getMethodNameType()
-													.length())).append("=")
-									.append(attributeValue);
+									.append(methodName.substring(BeanMethodNameType.GET.getMethodNameType().length()))
+									.append("=").append(attributeValue);
 							if (counter++ < methods.length) {
 								returnString.append(", ");
 							}
@@ -60,17 +54,12 @@ public final class ObjectDelegate {
 						continue;
 					}
 
-					if (methodName.startsWith(BeanMethodNameType.IS
-							.getMethodNameType())) {
-						attributeValue = method.invoke(objectToString,
-								(Object[]) null);
+					if (methodName.startsWith(BeanMethodNameType.IS.getMethodNameType())) {
+						attributeValue = method.invoke(objectToString, (Object[]) null);
 						if (!objectToString.equals(attributeValue)) {
 							returnString
-									.append(methodName
-											.substring(BeanMethodNameType.IS
-													.getMethodNameType()
-													.length())).append("=")
-									.append(attributeValue).append(", ");
+									.append(methodName.substring(BeanMethodNameType.IS.getMethodNameType().length()))
+									.append("=").append(attributeValue).append(", ");
 							if (counter++ < methods.length) {
 								returnString.append(", ");
 							}
@@ -102,8 +91,7 @@ public final class ObjectDelegate {
 			objectOutputStream.flush();
 			byte[] objectBytes = byteArrayOutputStream.toByteArray();
 
-			ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-					objectBytes);
+			ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(objectBytes);
 			objectInputStream = new ObjectInputStream(byteArrayInputStream);
 			return objectInputStream.readObject();
 		} catch (Exception exception) {
@@ -120,6 +108,58 @@ public final class ObjectDelegate {
 				// Do Nothing!
 			}
 		}
+	}
+
+	public static Object deserializeObj(byte[] buf) throws IOException, ClassNotFoundException {
+
+		Object obj = null;
+		if (buf != null) {
+			ObjectInputStream ois = null;
+			try {
+				ois = new ObjectInputStream(new ByteArrayInputStream(buf));
+				obj = ois.readObject();
+			} catch (IOException e) {
+				throw e;
+			} catch (ClassNotFoundException e) {
+				throw e;
+			} finally {
+				if (ois != null) {
+					try {
+						ois.close();
+					} catch (IOException e) {
+						throw e;
+					}
+				}
+			}
+		}
+
+		return obj;
+	}
+
+	public static byte[] serializeObj(Object obj) throws IOException {
+		byte[] buf = null;
+
+		if (obj != null) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = null;
+			try {
+				oos = new ObjectOutputStream(baos);
+				oos.writeObject(obj);
+				buf = baos.toByteArray();
+			} catch (IOException e) {
+				throw e;
+			} finally {
+				if (oos != null) {
+					try {
+						oos.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		}
+
+		return buf;
+
 	}
 
 	public static enum BeanMethodNameType {

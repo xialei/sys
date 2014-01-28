@@ -14,15 +14,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
+import org.apache.http.pool.PoolStats;
 import org.apache.log4j.Logger;
 
 public class CommonHttpUtils {
@@ -31,13 +30,32 @@ public class CommonHttpUtils {
 
 	public static final String UTF8 = "UTF-8";
 
-	private static PoolingClientConnectionManager clientConnMgr = new PoolingClientConnectionManager();
+	private static PoolingHttpClientConnectionManager clientConnMgr = new PoolingHttpClientConnectionManager();
 
 	static {
 		clientConnMgr.setMaxTotal(100);
 	}
 
 	private final static int DEFAULT_TIMEOUT = 5000;
+
+	/**
+	 * 
+	 * @param timeout
+	 *            : connectionTimeout | sotimeout
+	 * @return
+	 */
+	public static HttpClient getPooledHttpClient(int timeout) {
+
+		RequestConfig rconf = RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
+
+		HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(rconf).build();
+
+		return httpClient;
+	}
+
+	public static PoolStats getPoolStats() {
+		return clientConnMgr.getTotalStats();
+	}
 
 	public static String executeGetMothedRequest(String url) {
 		return executeGetMothedRequest(url, DEFAULT_TIMEOUT);
@@ -60,15 +78,10 @@ public class CommonHttpUtils {
 			URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), url.getPath(), url.getQuery(),
 					null);
 
-			HttpParams httpParams = new BasicHttpParams();
-			httpParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
-			httpParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
-			httpParams.setParameter(CoreConnectionPNames.TCP_NODELAY, true);
-
-			httpClient = new DefaultHttpClient(clientConnMgr, httpParams);
-
 			httpget = new HttpGet(uri);
 			httpget.addHeader("accept", "application/json");
+
+			httpClient = getPooledHttpClient(timeout);
 
 			HttpResponse response = httpClient.execute(httpget);
 			if (response.getStatusLine().getStatusCode() >= 400) {
@@ -111,12 +124,6 @@ public class CommonHttpUtils {
 
 		HttpPost httppost = null;
 		try {
-			HttpParams httpParams = new BasicHttpParams();
-			httpParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
-			httpParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
-			httpParams.setParameter(CoreConnectionPNames.TCP_NODELAY, true);
-
-			HttpClient httpClient = new DefaultHttpClient(clientConnMgr, httpParams);
 
 			httppost = new HttpPost(url);
 			httppost.addHeader("accept", "application/json");
@@ -124,6 +131,8 @@ public class CommonHttpUtils {
 			List<NameValuePair> paramsList = constructParamList(paramsMap);
 
 			httppost.setEntity(new UrlEncodedFormEntity(paramsList, UTF8));
+
+			HttpClient httpClient = getPooledHttpClient(timeout);
 
 			HttpResponse response = httpClient.execute(httppost);
 

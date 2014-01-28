@@ -1,10 +1,14 @@
 package com.aug3.sys.rs.response;
 
-public class RespObj {
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class RespObj implements Serializable {
+
 	private String code;
-	
+
 	private String type;
-	
+
 	private Object message;
 
 	public String getCode() {
